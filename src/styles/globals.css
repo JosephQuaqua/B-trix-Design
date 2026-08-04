@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Jost:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ivory-50 text-charcoal-800 font-body antialiased;
+  }
+  h1, h2, h3, h4, h5 {
+    @apply font-display;
+  }
+  ::selection {
+    @apply bg-champagne-200 text-charcoal-900;
+  }
+  *:focus-visible {
+    @apply outline-none ring-2 ring-champagne-400 ring-offset-2 ring-offset-ivory-50;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-eyebrow uppercase font-medium text-champagne-700 tracking-[0.2em];
+  }
+  .container-luxury {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12;
+  }
+  .link-underline {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-champagne-500 after:transition-all after:duration-300 hover:after:w-full;
+  }
+  .card-luxury {
+    @apply bg-ivory-100 border border-ivory-200 shadow-soft rounded-lg;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
