@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/AuthContext'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -11,6 +12,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const { user, profile, signOut } = useAuth()
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20)
@@ -48,11 +50,45 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden lg:block">
-          <Link to="/book-appointment">
-            <Button variant="gold" size="sm">Book Appointment</Button>
-          </Link>
-        </div>
+        <div className="hidden lg:flex items-center gap-3">
+  {!user ? (
+    <>
+      <Link to="/login">
+        <Button variant="ghost" size="sm">
+          Login
+        </Button>
+      </Link>
+
+      <Link to="/register">
+        <Button variant="gold" size="sm">
+          Create Account
+        </Button>
+      </Link>
+    </>
+  ) : (
+    <>
+      <Link
+        to={
+          profile?.role === 'admin' || profile?.role === 'super_admin'
+            ? '/admin'
+            : '/dashboard'
+        }
+      >
+        <Button variant="gold" size="sm">
+          Dashboard
+        </Button>
+      </Link>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={signOut}
+      >
+        Logout
+      </Button>
+    </>
+  )}
+</div>
 
         <button
           className="lg:hidden text-charcoal-800 p-2"
@@ -87,9 +123,43 @@ export function Navbar() {
                   {link.label}
                 </NavLink>
               ))}
-              <Link to="/book-appointment" className="mt-2">
-                <Button variant="gold" className="w-full">Book Appointment</Button>
-              </Link>
+              {!user ? (
+  <>
+    <Link to="/login">
+      <Button variant="outline" className="w-full">
+        Login
+      </Button>
+    </Link>
+
+    <Link to="/register">
+      <Button variant="gold" className="w-full">
+        Create Account
+      </Button>
+    </Link>
+  </>
+) : (
+  <>
+    <Link
+      to={
+        profile?.role === 'admin' || profile?.role === 'super_admin'
+          ? '/admin'
+          : '/dashboard'
+      }
+    >
+      <Button variant="gold" className="w-full">
+        Dashboard
+      </Button>
+    </Link>
+
+    <Button
+      variant="outline"
+      className="w-full"
+      onClick={signOut}
+    >
+      Logout
+    </Button>
+  </>
+)}
               <p className="text-sm text-charcoal-500 text-center mt-2">{SITE.tagline}</p>
             </div>
           </motion.div>
