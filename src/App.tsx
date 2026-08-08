@@ -44,6 +44,9 @@ const CollectionsAdminPage = lazy(() => import('@/features/admin/CollectionsAdmi
 const ServicesAdminPage = lazy(() => import('@/features/admin/ServicesAdminPage'))
 const AppointmentsAdminPage = lazy(() => import('@/features/admin/AppointmentsAdminPage'))
 const CustomersPage = lazy(() => import('@/features/admin/CustomersPage'))
+const ContactMessagesPage = lazy(
+  () => import('@/features/admin/ContactMessagesPage')
+)
 const ReviewsPage = lazy(() => import('@/features/admin/ReviewsPage'))
 const MessagesAdminPage = lazy(() => import('@/features/admin/MessagesAdminPage'))
 const StaffPage = lazy(() => import('@/features/admin/StaffPage'))
@@ -116,6 +119,11 @@ export default function App() {
                 <Route path="/admin/gallery" element={<GalleryPage />} />
                 <Route path="/admin/collections" element={<CollectionsAdminPage />} />
                 <Route path="/admin/services" element={<ServicesAdminPage />} />
+                <Route
+                    path="/admin/contact-messages"
+                    element={<ContactMessagesPage />}
+                  />
+
                 <Route path="/admin/appointments" element={<AppointmentsAdminPage />} />
                 <Route path="/admin/customers" element={<CustomersPage />} />
                 <Route path="/admin/reviews" element={<ReviewsPage />} />

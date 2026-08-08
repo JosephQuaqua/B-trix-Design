@@ -1,3 +1,5 @@
+import { supabase } from '@/config/supabase'
+import { useAuth } from '@/context/AuthContext'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Phone, MapPin, Send } from 'lucide-react'
@@ -6,16 +8,54 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { SITE } from '@/config/site'
 
 export default function ContactPage() {
+
+  const { user } = useAuth()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setLoading(false)
-    setSubmitted(true)
+const [firstName, setFirstName] = useState('')
+const [lastName, setLastName] = useState('')
+const [email, setEmail] = useState('')
+const [phone, setPhone] = useState('')
+const [subject, setSubject] = useState('')
+const [message, setMessage] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+
+  const { error } = await supabase
+  .from('contact_messages')
+    .insert({
+  customer_id: user?.id ??null,
+
+  first_name: firstName,
+  last_name: lastName,
+  email,
+  phone,
+  subject,
+  message,
+
+  status: 'new',
+})
+  setLoading(false)
+
+  if (error) {
+   console.error(error)
+
+alert(error.message)
+    return
   }
+
+  setSubmitted(true)
+  setFirstName('')
+setLastName('')
+setEmail('')
+setPhone('')
+setSubject('')
+setMessage('')
+}
 
   return (
     <>
@@ -93,13 +133,49 @@ export default function ContactPage() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Input label="First Name" required placeholder="Sarah" />
-                    <Input label="Last Name" required placeholder="Johnson" />
+                                            <Input
+                          label="First Name"
+                          required
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          placeholder="Sarah"
+                        />
+                   <Input
+  label="Last Name"
+  required
+  value={lastName}
+  onChange={(e) => setLastName(e.target.value)}
+  placeholder="Johnson"
+/>
                   </div>
-                  <Input label="Email" type="email" required placeholder="sarah@example.com" />
-                  <Input label="Phone" type="tel" placeholder="+1 (555) 123-4567" />
-                  <Input label="Subject" required placeholder="Consultation inquiry" />
-                  <Textarea label="Message" required placeholder="Tell us about your vision..." />
+                  <Input
+  label="Email"
+  type="email"
+  required
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  placeholder="sarah@example.com"
+/>
+                  <Input
+  label="Phone"
+  value={phone}
+  onChange={(e) => setPhone(e.target.value)}
+  placeholder="+231..."
+/>
+                 <Input
+  label="Subject"
+  required
+  value={subject}
+  onChange={(e) => setSubject(e.target.value)}
+  placeholder="Consultation inquiry"
+/>
+                  <Textarea
+  label="Message"
+  required
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  placeholder="Tell us about your vision..."
+/>
                   <Button type="submit" variant="gold" size="lg" loading={loading} className="w-full">
                     Send Message
                   </Button>

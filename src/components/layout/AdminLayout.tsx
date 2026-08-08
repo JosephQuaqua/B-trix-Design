@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Image, FolderOpen, Briefcase, CalendarDays,
-  Users, Star, MessageSquare, UserCog, BarChart3, Settings,
+  Users, Star, MessageSquare, Mail, UserCog, BarChart3, Settings,
   ShieldCheck, Activity, Sliders, LogOut, Menu, X,
 } from 'lucide-react'
 import { Logo } from './Logo'
@@ -18,6 +18,12 @@ const adminNav = [
   { to: '/admin/services', label: 'Services', icon: Briefcase, roles: ['admin','super_admin'] as Role[] },
   { to: '/admin/appointments', label: 'Appointments', icon: CalendarDays, roles: ['admin','super_admin'] as Role[] },
   { to: '/admin/customers', label: 'Customers', icon: Users, roles: ['admin','super_admin'] as Role[] },
+  {
+  to: '/admin/contact-messages',
+  label: 'Contact Messages',
+  icon: Mail,
+  roles: ['admin', 'super_admin'] as Role[],
+},
   { to: '/admin/reviews', label: 'Reviews', icon: Star, roles: ['admin','super_admin'] as Role[] },
   { to: '/admin/messages', label: 'Messages', icon: MessageSquare, roles: ['admin','super_admin'] as Role[] },
   { to: '/admin/staff', label: 'Staff', icon: UserCog, roles: ['admin','super_admin'] as Role[] },
