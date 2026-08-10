@@ -13,7 +13,18 @@ import { COLLECTION_CATEGORIES } from '@/lib/constants'
 export default function CollectionsAdminPage() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', slug: '', description: '', category: 'white_wedding', fabric: '', color: '', image_url: '' })
+  const [form, setForm] = useState({
+  title: '',
+  slug: '',
+  description: '',
+  category: 'white_wedding',
+  fabric: '',
+  color: '',
+  
+  image_file: null as File | null,
+})
+       
+       
 
   const { data: collections, isLoading } = useQuery({
     queryKey: ['admin', 'collections'],
@@ -25,23 +36,52 @@ export default function CollectionsAdminPage() {
   })
 
   const addMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('collections').insert({
-        title: form.title,
-        slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-'),
-        description: form.description,
-        category: form.category,
-        fabric: form.fabric || null,
-        color: form.color || null,
-        image_url: form.image_url || null,
-      })
-      if (error) throw error
-    },
+   mutationFn: async () => {
+  if (!form.image_file) {
+    throw new Error('Please select a collection cover image.')
+  }
+
+  const file = form.image_file
+
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${crypto.randomUUID()}.${fileExt}`
+  const filePath = `collections/${fileName}`
+
+  // Upload image to Supabase Storage
+  const { error: uploadError } = await supabase.storage
+    .from('event-images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+    })
+
+  if (uploadError) throw uploadError
+
+  // Get public URL
+  const { data: publicUrlData } = supabase.storage
+    .from('event-images')
+    .getPublicUrl(filePath)
+
+  const imageUrl = publicUrlData.publicUrl
+
+  // Save collection
+  const { error } = await supabase.from('collections').insert({
+    title: form.title,
+    slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-'),
+    description: form.description,
+    category: form.category,
+    fabric: form.fabric || null,
+    color: form.color || null,
+    image_url: imageUrl,
+  })
+
+  if (error) throw error
+},
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'collections'] })
       queryClient.invalidateQueries({ queryKey: ['collections'] })
       setShowForm(false)
-      setForm({ title: '', slug: '', description: '', category: 'white_wedding', fabric: '', color: '', image_url: '' })
+      setForm({ title: '', slug: '', description: '', category: 'white_wedding', fabric: '', color: '', image_file: null })
     },
   })
 
@@ -77,7 +117,7 @@ export default function CollectionsAdminPage() {
               <Input label="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="auto-generated if empty" />
             </div>
             <Textarea label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-charcoal-700 mb-1.5">Category</label>
                 <select
@@ -89,9 +129,40 @@ export default function CollectionsAdminPage() {
                 </select>
               </div>
               <Input label="Fabric" value={form.fabric} onChange={(e) => setForm({ ...form, fabric: e.target.value })} />
-              <Input label="Color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />
+                   <Input
+  label="Color"
+  value={form.color}
+  onChange={(e) => setForm({ ...form, color: e.target.value })}
+/>
+
+<div>
+  <label className="block text-sm font-medium text-charcoal-700 mb-1.5">
+    Collection Cover Image
+  </label>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files?.[0]
+
+      if (file) {
+        setForm({ ...form, image_file: file })
+      }
+    }}
+    className="w-full rounded-md border border-ivory-300 bg-ivory-50 px-4 py-2.5 text-charcoal-800"
+  />
+</div>
+
+<div>
+  <label className="block text-sm font-medium text-charcoal-700 mb-1.5">
+    Collection Cover Image
+  </label>
+
+  
+</div>
             </div>
-            <Input label="Image URL" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+            
             <div className="flex gap-3">
               <Button type="submit" variant="gold" loading={addMutation.isPending}>Save Collection</Button>
               <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
