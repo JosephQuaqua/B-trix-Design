@@ -12,7 +12,21 @@ import { EmptyState } from '@/components/ui/EmptyState'
 export default function GalleryPage() {
   const queryClient = useQueryClient()
   const [newTitle, setNewTitle] = useState('')
-  const [newUrl, setNewUrl] = useState('')
+const [newFile, setNewFile] = useState<File | null>(null)
+  const [newCollectionId, setNewCollectionId] = useState('')
+
+  const { data: collections } = useQuery({
+  queryKey: ['admin', 'collections'],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from('collections')
+      .select('id, title')
+      .order('title')
+
+    if (error) throw error
+    return data
+  },
+})
 
   const { data: gallery, isLoading } = useQuery({
     queryKey: ['admin', 'gallery'],
@@ -27,15 +41,47 @@ export default function GalleryPage() {
   })
 
   const addMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('gallery').insert({ title: newTitle, image_url: newUrl })
-      if (error) throw error
-    },
+  mutationFn: async () => {
+    if (!newFile) {
+      throw new Error('Please select an image.')
+    }
+
+    const fileExt = newFile.name.split('.').pop()
+    const fileName = `${crypto.randomUUID()}.${fileExt}`
+    const filePath = `gallery/${fileName}`
+
+    // Upload image to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('event-images')
+      .upload(filePath, newFile, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('event-images')
+      .getPublicUrl(filePath)
+
+    const imageUrl = publicUrlData.publicUrl
+
+    // Save image information in gallery table
+    const { error } = await supabase
+      .from('gallery')
+      .insert({
+        title: newTitle,
+        image_url: imageUrl,
+      })
+
+    if (error) throw error
+  },
     onSuccess: () => {
-      setNewTitle('')
-      setNewUrl('')
-      queryClient.invalidateQueries({ queryKey: ['admin', 'gallery'] })
-    },
+  setNewTitle('')
+  setNewFile(null)
+  queryClient.invalidateQueries({ queryKey: ['admin', 'gallery'] })
+},
   })
 
   const deleteMutation = useMutation({
@@ -55,9 +101,33 @@ export default function GalleryPage() {
 
       <Card className="mb-8">
         <h3 className="font-display text-lg text-charcoal-900 mb-4">Add New Image</h3>
-        <form onSubmit={(e) => { e.preventDefault(); if (newTitle && newUrl) addMutation.mutate() }} className="flex flex-col sm:flex-row gap-3">
-          <Input placeholder="Image title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="flex-1" />
-          <Input placeholder="Image URL" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="flex-1" />
+       <form onSubmit={(e) => { e.preventDefault(); if (newTitle && newFile) addMutation.mutate() }} className="flex flex-col sm:flex-row gap-3">
+          {/* <Input placeholder="Image title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="flex-1" /> */}
+          <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+    const file = e.target.files?.[0]
+
+    if (file) {
+      setNewFile(file)
+    }
+  }}
+  className="flex-1 rounded-md border border-ivory-300 bg-ivory-50 px-4 py-2.5 text-charcoal-800"
+/>
+          <select
+  value={newCollectionId}
+  onChange={(e) => setNewCollectionId(e.target.value)}
+  className="flex-1 rounded-md border border-ivory-300 bg-ivory-50 px-4 py-2.5 text-charcoal-800"
+>
+  <option value="">Select Collection</option>
+
+  {collections?.map((collection) => (
+    <option key={collection.id} value={collection.id}>
+      {collection.title}
+    </option>
+  ))}
+</select>
           <Button type="submit" variant="gold" loading={addMutation.isPending}>
             <Plus className="h-4 w-4" />
             Add

@@ -25,20 +25,21 @@ export default function CollectionDetailPage() {
     enabled: !!slug,
   })
 
-  const { data: related } = useQuery({
-    queryKey: ['collections', 'related', collection?.category],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('collections')
-        .select('*')
-        .eq('category', collection!.category)
-        .neq('id', collection!.id)
-        .limit(3)
-      if (error) throw error
-      return data
-    },
-    enabled: !!collection,
-  })
+  const { data: gallery } = useQuery({
+  queryKey: ['gallery', collection?.id],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from('gallery')
+      .select('*')
+      .eq('collection_id', collection!.id)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  },
+  enabled: !!collection,
+})
+
 
   if (isLoading) {
     return (
@@ -130,33 +131,41 @@ export default function CollectionDetailPage() {
               </div>
             </motion.div>
           </div>
+              </div>
+    </section>
+
+    {gallery && gallery.length > 0 && (
+      <section className="pb-24 bg-ivory-50">
+        <div className="container-luxury">
+          <h2 className="font-display text-display-2 text-charcoal-900 mb-8 text-center">
+            Collection Gallery
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {gallery.map((item) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="aspect-[3/4] overflow-hidden rounded-lg bg-ivory-200"
+              >
+                <img
+                  src={item.image_url ?? ''}
+                  alt={item.title ?? collection.title}
+                  className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                />
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
+    )}
 
-      {related && related.length > 0 && (
-        <section className="pb-24 bg-ivory-50">
-          <div className="container-luxury">
-            <h2 className="font-display text-display-2 text-charcoal-900 mb-8 text-center">Related Designs</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {related.map((item) => (
-                <Link key={item.id} to={`/collections/${item.slug}`} className="group block">
-                  <div className="aspect-[3/4] overflow-hidden rounded-lg bg-ivory-200">
-                    <img
-                      src={item.image_url ?? ''}
-                      alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  </div>
-                  <h3 className="mt-3 font-display text-lg text-charcoal-900 group-hover:text-champagne-700 transition-colors">
-                    {item.title}
-                  </h3>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-    </>
+    
+
+        </>
   )
 }
