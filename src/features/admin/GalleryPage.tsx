@@ -14,6 +14,7 @@ export default function GalleryPage() {
   const [newTitle, setNewTitle] = useState('')
 const [newFile, setNewFile] = useState<File | null>(null)
   const [newCollectionId, setNewCollectionId] = useState('')
+  const [showForm, setShowForm] = useState(false)
 
   const { data: collections } = useQuery({
   queryKey: ['admin', 'collections'],
@@ -68,12 +69,13 @@ const [newFile, setNewFile] = useState<File | null>(null)
     const imageUrl = publicUrlData.publicUrl
 
     // Save image information in gallery table
-    const { error } = await supabase
-      .from('gallery')
-      .insert({
-        title: newTitle,
-        image_url: imageUrl,
-      })
+   const { error } = await supabase
+  .from('gallery')
+  .insert({
+    title: newTitle || newFile.name,
+    image_url: imageUrl,
+    collection_id: newCollectionId,
+  })
 
     if (error) throw error
   },
@@ -94,14 +96,36 @@ const [newFile, setNewFile] = useState<File | null>(null)
 
   return (
     <div className="p-6 lg:p-10 max-w-5xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <p className="eyebrow text-champagne-700 mb-2">Admin Panel</p>
-        <h1 className="font-display text-display-2 text-charcoal-900 mb-8">Gallery Management</h1>
-      </motion.div>
+      <motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+  className="flex items-end justify-between mb-8"
+>
+  <div>
+    <p className="eyebrow text-champagne-700 mb-2">Admin Panel</p>
+    <h1 className="font-display text-display-2 text-charcoal-900">
+      Gallery Management
+    </h1>
+  </div>
 
-      <Card className="mb-8">
+  <Button
+    variant="gold"
+    size="sm"
+    onClick={() => setShowForm(!showForm)}
+  >
+    <Plus className="h-4 w-4" />
+    Add Image
+  </Button>
+</motion.div>
+
+      {showForm && (
+  <Card className="mb-8">
         <h3 className="font-display text-lg text-charcoal-900 mb-4">Add New Image</h3>
-       <form onSubmit={(e) => { e.preventDefault(); if (newTitle && newFile) addMutation.mutate() }} className="flex flex-col sm:flex-row gap-3">
+       <form onSubmit={(e) => {
+  e.preventDefault()
+  if (newFile && newCollectionId) addMutation.mutate()
+}} className="flex flex-col sm:flex-row gap-3">
           {/* <Input placeholder="Image title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="flex-1" /> */}
           <input
   type="file"
@@ -116,6 +140,7 @@ const [newFile, setNewFile] = useState<File | null>(null)
   className="flex-1 rounded-md border border-ivory-300 bg-ivory-50 px-4 py-2.5 text-charcoal-800"
 />
           <select
+           required
   value={newCollectionId}
   onChange={(e) => setNewCollectionId(e.target.value)}
   className="flex-1 rounded-md border border-ivory-300 bg-ivory-50 px-4 py-2.5 text-charcoal-800"
@@ -134,6 +159,8 @@ const [newFile, setNewFile] = useState<File | null>(null)
           </Button>
         </form>
       </Card>
+
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
