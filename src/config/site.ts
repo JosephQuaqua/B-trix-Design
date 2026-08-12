@@ -3,12 +3,12 @@ export const SITE = {
   tagline: 'Where Elegance Meets Craftsmanship',
   description:
     "Luxury bridal fashion studio specializing in white wedding dresses, Liberian traditional wedding attire, custom fashion design, and bridal consultation.",
-  email: 'hello@btrixdesign.com',
-  phone: '+1 (555) 123-4567',
+  email: 'beatricesonnietennie@gmail.com',
+  phone: '+231 77 555-4165',
   address: 'Monrovia, Liberia',
   social: {
     instagram: 'https://instagram.com/btrixdesign',
-    facebook: 'https://facebook.com/btrixdesign',
+    facebook: 'https://www.facebook.com/profile.php?id=61592487642965&mibextid=wwXIfr',
     pinterest: 'https://pinterest.com/btrixdesign',
   },
 } as const
